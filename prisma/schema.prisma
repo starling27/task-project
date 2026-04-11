@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String            @id @default(uuid())
+  email           String            @unique
+  name            String
+  role            String            @default("member") // admin, member, viewer
+  avatarUrl       String?
+  stories         Story[]           @relation("StoryAssignee")
+  assigneeHistory AssigneeHistory[]
+  comments        Comment[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  epics       Epic[]
+  sprints     Sprint[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Epic {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  name        String
+  description String?
+  status      String   @default("draft") // draft, active, archived
+  stories     Story[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([projectId, name])
+}
+
+model Sprint {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  name      String
+  goal      String?
+  status    String   @default("planned") // planned, active, closed
+  stories   Story[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, name])
+}
+
+model Story {
+  id                 String            @id @default(uuid())
+  epicId             String
+  epic               Epic              @relation(fields: [epicId], references: [id])
+  sprintId           String?
+  sprint             Sprint?           @relation(fields: [sprintId], references: [id])
+  assigneeId         String?
+  assignee           User?             @relation("StoryAssignee", fields: [assigneeId], references: [id])
+  title              String
+  description        String
+  storyPoints        Int?
+  priority           String            @default("medium") // low, medium, high, critical
+  type               String            @default("story") // story, bug, task
+  status             String            @default("unassigned")
+  acceptanceCriteria String?
+  observations       String?
+  dueDate            DateTime?
+  jiraIssueKey       String?           @unique
+  comments           Comment[]
+  statusHistory      StatusHistory[]
+  assigneeHistory    AssigneeHistory[]
+  syncLogs           JiraSyncLog[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+model WorkflowState {
+  id          String  @id @default(uuid())
+  name        String  @unique
+  description String?
+  isInitial   Boolean @default(false)
+  isFinal     Boolean @default(false)
+  order       Int     @default(0)
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StatusHistory {
+  id        String   @id @default(uuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id])
+  oldStatus String
+  newStatus String
+  changedAt DateTime @default(now())
+}
+
+model AssigneeHistory {
+  id            String   @id @default(uuid())
+  storyId       String
+  story         Story    @relation(fields: [storyId], references: [id])
+  oldAssigneeId String?
+  newAssigneeId String?
+  newAssignee   User?    @relation(fields: [newAssigneeId], references: [id])
+  assignedAt    DateTime @default(now())
+}
+
+model JiraSyncQueue {
+  id        String   @id @default(uuid())
+  storyId   String
+  action    String // create, update
+  status    String   @default("pending") // pending, processing, completed, failed
+  retries   Int      @default(0)
+  error     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JiraSyncLog {
+  id        String   @id @default(uuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id])
+  status    String // success, failed
+  message   String?
+  timestamp DateTime @default(now())
+}
