@@ -195,7 +195,7 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
     }));
 
     try {
-      const res = await fetch(`/api/v1/stories/${id}/status`, { // Simplificado para usar el mismo endpoint de update general si existiera
+      const res = await fetch(`/api/v1/stories/${id}/status`, { 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
