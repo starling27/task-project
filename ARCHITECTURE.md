@@ -248,3 +248,7 @@ Jira MCP
 ## 🧠 State Management Strategy
 
 ### Frontend
+
+### 🗄️ Database Setup
+- Siempre que se cambie el `schema.prisma`, se debe ejecutar `npx prisma migrate dev`.
+- El archivo `dev.db` está ignorado en git, por lo que en instalaciones nuevas es el primer paso obligatorio.
