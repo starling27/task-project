@@ -1,15 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-
-const App = () => (
-  <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-    <h1>🚀 Backlog Sync System</h1>
-    <p>El sistema está levantado. Backend en el puerto 3000.</p>
-  </div>
-)
+import { BacklogPage } from './pages/BacklogPage'
+import './index.css' // Asumiendo que existe o se creará para Tailwind
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <BacklogPage />
   </React.StrictMode>,
 )
