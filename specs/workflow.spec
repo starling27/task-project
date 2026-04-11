@@ -7,6 +7,18 @@ context:
 entity:
   name: WorkflowState
   fields:
+    id:
+      type: uuid
+    projectId: # <--- Relación clave para dinamismo por proyecto
+      type: uuid
+      required: true
+    name:
+      type: string
+      required: true
+    order:
+      type: number
+  name: WorkflowState
+  fields:
 
     id:
       type: uuid

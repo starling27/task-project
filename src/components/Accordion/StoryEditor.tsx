@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { CommentSection } from '../CommentSection';
+import { HistoryTimeline } from '../HistoryTimeline';
 
 interface StoryDetails {
   id: string;
@@ -15,6 +17,12 @@ interface StoryEditorProps {
 export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
   const [localData, setLocalData] = useState(story);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'content' | 'discussion' | 'history'>('content');
+
+  useEffect(() => {
+    setLocalData(story);
+  }, [story]);
 
   // Debounced Auto-save
   useEffect(() => {
@@ -22,13 +30,20 @@ export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
 
     const timer = setTimeout(async () => {
       setSaving(true);
-      await onSave(story.id, {
-        description: localData.description,
-        acceptanceCriteria: localData.acceptanceCriteria,
-        observations: localData.observations
-      });
-      setSaving(false);
-    }, 500);
+      setSaveError(null);
+      try {
+        await onSave(story.id, {
+          description: localData.description,
+          acceptanceCriteria: localData.acceptanceCriteria,
+          observations: localData.observations
+        });
+      } catch (error) {
+        setSaveError('Save failed. Restored latest data from server.');
+        setLocalData(story);
+      } finally {
+        setSaving(false);
+      }
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [localData, onSave, story]);
@@ -38,35 +53,71 @@ export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
   };
 
   return (
-  // Dentro del return de StoryEditor:
-  <div className="space-y-6 pt-4">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-2">
-        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Descripción</label>
-        <textarea
-          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm leading-relaxed focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all h-40 shadow-inner"
-          value={localData.description}
-          onChange={(e) => handleChange('description', e.target.value)}
-        />
+    <div className="space-y-6">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-100">
+        <button 
+          onClick={() => setActiveTab('content')}
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === 'content' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+        >
+          Details
+        </button>
+        <button 
+          onClick={() => setActiveTab('discussion')}
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === 'discussion' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+        >
+          Discussion
+        </button>
+        <button 
+          onClick={() => setActiveTab('history')}
+          className={`px-4 py-2 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === 'history' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+        >
+          History
+        </button>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Criterios de Aceptación</label>
-        <textarea
-          className="w-full p-4 bg-slate-900 text-blue-100 border border-slate-800 rounded-xl text-xs font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none transition-all h-40 shadow-2xl"
-          value={localData.acceptanceCriteria}
-          onChange={(e) => handleChange('acceptanceCriteria', e.target.value)}
-        />
-      </div>
+      {activeTab === 'content' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Description</label>
+              <textarea
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm leading-relaxed focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-40 shadow-inner"
+                value={localData.description}
+                onChange={(e) => handleChange('description', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Acceptance Criteria</label>
+              <textarea
+                className="w-full p-4 bg-slate-900 text-blue-100 border border-slate-800 rounded-xl text-xs font-mono leading-relaxed focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-40 shadow-2xl"
+                value={localData.acceptanceCriteria}
+                onChange={(e) => handleChange('acceptanceCriteria', e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 justify-end">
+            <div className={`w-2 h-2 rounded-full ${saving ? 'bg-indigo-500 animate-ping' : 'bg-emerald-500'}`} />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+              {saving ? 'Syncing...' : saveError ? 'Save failed' : 'All changes saved'}
+            </span>
+          </div>
+          {saveError && <p className="text-[11px] text-red-500 text-right">{saveError}</p>}
+        </div>
+      )}
+
+      {activeTab === 'discussion' && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <CommentSection storyId={story.id} />
+        </div>
+      )}
+
+      {activeTab === 'history' && (
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <HistoryTimeline storyId={story.id} />
+        </div>
+      )}
     </div>
-    
-    {/* Indicador de autoguardado elegante */}
-    <div className="flex items-center gap-2 justify-end px-2">
-      <div className={`w-2 h-2 rounded-full ${saving ? 'bg-blue-500 animate-ping' : 'bg-emerald-500'}`} />
-      <span className="text-[10px] font-bold text-slate-400 uppercase">
-        {saving ? 'Sincronizando...' : 'Cambios guardados localmente'}
-      </span>
-    </div>
-  </div>
   );
 };

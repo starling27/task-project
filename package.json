@@ -10,7 +10,8 @@
     "frontend:dev": "vite",
     "worker:dev": "tsx src/workers/jiraSyncWorker.ts",
     "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"npm run worker:dev\"",
-    "test:integration": "tsx tests/integration_test.ts"
+    "test:integration": "tsx tests/integration_test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",

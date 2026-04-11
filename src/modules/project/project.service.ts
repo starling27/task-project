@@ -1,6 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+const DEFAULT_WORKFLOW_STATES = [
+  { name: 'unassigned', isInitial: true, isFinal: false, order: 0 },
+  { name: 'assigned', isInitial: false, isFinal: false, order: 1 },
+  { name: 'in_progress', isInitial: false, isFinal: false, order: 2 },
+  { name: 'done', isInitial: false, isFinal: true, order: 3 }
+];
 
 export class ProjectService {
   async create(data: { name: string; description?: string }) {
@@ -9,7 +15,21 @@ export class ProjectService {
 
     if (data.name.length < 3) throw new Error('Project name too short');
 
-    return prisma.project.create({ data });
+    return prisma.$transaction(async (tx) => {
+      const project = await tx.project.create({ data });
+
+      await tx.workflowState.createMany({
+        data: DEFAULT_WORKFLOW_STATES.map((state) => ({
+          projectId: project.id,
+          name: state.name,
+          isInitial: state.isInitial,
+          isFinal: state.isFinal,
+          order: state.order
+        }))
+      });
+
+      return project;
+    });
   }
 
   async getAll() {

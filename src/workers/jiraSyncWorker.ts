@@ -1,16 +1,22 @@
 import { PrismaClient } from '@prisma/client';
 import { eventBus, SystemEvents } from '../services/eventBus.js';
 import { JiraMCPClient, JiraTransformer } from '../services/jiraSync.service.js';
+import { fileURLToPath } from 'url';
 
 const prisma = new PrismaClient();
 const jiraClient = new JiraMCPClient();
 
 export class JiraSyncWorker {
+  private static listenersRegistered = false;
+
   constructor() {
     this.setupListeners();
   }
 
   private setupListeners() {
+    if (JiraSyncWorker.listenersRegistered) return;
+    JiraSyncWorker.listenersRegistered = true;
+
     // Escuchar eventos para encolar tareas
     eventBus.subscribe(SystemEvents.STORY_CREATED, async ({ storyId }) => {
       await this.queueSync(storyId, 'create');
@@ -91,7 +97,8 @@ export class JiraSyncWorker {
 }
 
 // Auto-start worker if run directly
-if (import.meta.url.endsWith('jiraSyncWorker.ts')) {
+const currentFile = fileURLToPath(import.meta.url);
+if (process.argv[1] && currentFile === process.argv[1]) {
   console.log('👷 JiraSyncWorker Starting...');
   new JiraSyncWorker();
 }

@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const projectService = new ProjectService();
 const epicService = new EpicService();
 const storyService = new StoryService();
-const syncWorker = new JiraSyncWorker();
+new JiraSyncWorker();
 
 async function runE2ETest() {
   console.log("🚀 Iniciando Prueba de Integración E2E...");
@@ -42,17 +42,18 @@ async function runE2ETest() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // 4. Verificar Cola de Sincronización
-    const pendingTask = await prisma.jiraSyncQueue.findFirst({
-      where: { storyId: story.id }
+    const queuedTasks = await prisma.jiraSyncQueue.findMany({
+      where: { storyId: story.id },
+      orderBy: { createdAt: 'desc' }
     });
 
-    if (pendingTask) {
-      console.log("✅ Tarea encontrada en la cola JiraSyncQueue (Estado: " + pendingTask.status + ")");
+    if (queuedTasks.length === 1) {
+      console.log("✅ Se encoló exactamente una tarea en JiraSyncQueue (Estado: " + queuedTasks[0].status + ")");
     } else {
-      throw new Error("❌ Error: Tarea no encontrada en la cola");
+      throw new Error("❌ Error: cantidad de tareas inesperada en JiraSyncQueue para la historia creada");
     }
 
-    console.log("\n✨ RESULTADO: PRUEBA DE INTEGRACIÓN EXITOSA ✨");
+    console.log("\n✨ RESULTADO: FLUJO DE ENCOLADO EXITOSO ✨");
     process.exit(0);
   } catch (error: any) {
     console.error("❌ FALLO EN LA PRUEBA:", error.message);

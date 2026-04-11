@@ -4,19 +4,24 @@ const prisma = new PrismaClient();
 
 export class WorkflowService {
   /**
-   * Valida si una transición de estado es permitida.
-   * Por ahora, permitimos todas si el estado existe en la BD.
+   * Valida si una transición de estado es permitida para un proyecto específico.
+   * Por ahora, permitimos todas si el estado existe en la BD para ese proyecto.
    * En el futuro, esto podría consultar una tabla de 'WorkflowTransitions'.
    */
-  async validateTransition(oldStatus: string, newStatus: string): Promise<boolean> {
+  async validateTransition(oldStatus: string, newStatus: string, projectId: string): Promise<boolean> {
     if (oldStatus === newStatus) return true;
 
     const targetState = await prisma.workflowState.findUnique({
-      where: { name: newStatus }
+      where: {
+        projectId_name: {
+          projectId,
+          name: newStatus,
+        },
+      },
     });
 
     if (!targetState) {
-      throw new Error(`Target state '${newStatus}' does not exist in workflow`);
+      throw new Error(`Target state '${newStatus}' does not exist in workflow for project ${projectId}`);
     }
 
     // Aquí se podrían añadir reglas de negocio por transición
@@ -25,17 +30,21 @@ export class WorkflowService {
     return true;
   }
 
-  async getInitialState(): Promise<string> {
+  async getInitialState(projectId: string): Promise<string> {
     const state = await prisma.workflowState.findFirst({
-      where: { isInitial: true },
-      orderBy: { order: 'asc' }
+      where: {
+        projectId,
+        isInitial: true,
+      },
+      orderBy: { order: 'asc' },
     });
     return state?.name || 'unassigned';
   }
 
-  async getAllStates() {
+  async getAllStates(projectId: string) {
     return prisma.workflowState.findMany({
-      orderBy: { order: 'asc' }
+      where: { projectId },
+      orderBy: { order: 'asc' },
     });
   }
 }

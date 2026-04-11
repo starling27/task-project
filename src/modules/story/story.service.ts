@@ -27,7 +27,7 @@ export class StoryService {
     }
 
     // 3. Obtener estado inicial
-    const initialStatus = await workflowService.getInitialState();
+    const initialStatus = await workflowService.getInitialState(epic.projectId);
 
     const story = await prisma.story.create({
       data: {
@@ -43,8 +43,11 @@ export class StoryService {
   }
 
   async update(id: string, data: any) {
-    const story = await prisma.story.findUnique({ where: { id } });
-    if (!story) throw new Error('Story not found');
+    const story_to_update = await prisma.story.findUnique({
+      where: { id },
+      include: { epic: true }
+    });
+    if (!story_to_update) throw new Error('Story not found');
 
     // Validar Story Points si cambian
     if (data.storyPoints && !this.validPoints.includes(data.storyPoints)) {
@@ -52,38 +55,42 @@ export class StoryService {
     }
 
     // Validar Workflow si cambia el status
-    if (data.status && data.status !== story.status) {
-      await workflowService.validateTransition(story.status, data.status);
-      
+    if (data.status && data.status !== story_to_update.status) {
+      await workflowService.validateTransition(
+        story_to_update.status,
+        data.status,
+        story_to_update.epic.projectId
+      );
+
       // Registrar historial de estado (esto también se puede hacer vía suscriptor de eventos)
       await prisma.statusHistory.create({
         data: {
           storyId: id,
-          oldStatus: story.status,
+          oldStatus: story_to_update.status,
           newStatus: data.status
         }
       });
 
       eventBus.emitEvent(SystemEvents.STORY_STATUS_CHANGED, {
         storyId: id,
-        oldStatus: story.status,
+        oldStatus: story_to_update.status,
         newStatus: data.status
       });
     }
 
     // Validar Asignado
-    if (data.assigneeId && data.assigneeId !== story.assigneeId) {
+    if (data.assigneeId && data.assigneeId !== story_to_update.assigneeId) {
       await prisma.assigneeHistory.create({
         data: {
           storyId: id,
-          oldAssigneeId: story.assigneeId,
+          oldAssigneeId: story_to_update.assigneeId,
           newAssigneeId: data.assigneeId
         }
       });
 
       eventBus.emitEvent(SystemEvents.STORY_ASSIGNED, {
         storyId: id,
-        oldAssigneeId: story.assigneeId || undefined,
+        oldAssigneeId: story_to_update.assigneeId || undefined,
         newAssigneeId: data.assigneeId
       });
     }
@@ -105,6 +112,24 @@ export class StoryService {
         epic: true,
         comments: { take: 5, orderBy: { createdAt: 'desc' } }
       }
+    });
+  }
+
+  async getByProject(projectId: string) {
+    return prisma.story.findMany({
+      where: {
+        epic: {
+          projectId: projectId,
+        },
+      },
+      include: {
+        assignee: true,
+        epic: true,
+        comments: { take: 1, orderBy: { createdAt: 'desc' } },
+      },
+      orderBy: {
+        id: 'desc',
+      },
     });
   }
 

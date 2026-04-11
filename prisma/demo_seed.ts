@@ -24,6 +24,28 @@ async function main() {
     }
   });
 
+  // Create WorkflowStates for Sample Project
+  await prisma.workflowState.upsert({
+    where: { projectId_name: { projectId: project.id, name: 'unassigned' } },
+    update: {},
+    create: { projectId: project.id, name: 'unassigned', isInitial: true, order: 0 }
+  });
+  await prisma.workflowState.upsert({
+    where: { projectId_name: { projectId: project.id, name: 'assigned' } },
+    update: {},
+    create: { projectId: project.id, name: 'assigned', order: 1 }
+  });
+  await prisma.workflowState.upsert({
+    where: { projectId_name: { projectId: project.id, name: 'in_progress' } },
+    update: {},
+    create: { projectId: project.id, name: 'in_progress', order: 2 }
+  });
+  await prisma.workflowState.upsert({
+    where: { projectId_name: { projectId: project.id, name: 'done' } },
+    update: {},
+    create: { projectId: project.id, name: 'done', isFinal: true, order: 3 }
+  });
+
   // Create Epic
   const epic = await prisma.epic.upsert({
     where: { projectId_name: { projectId: project.id, name: 'Initial Epic' } },
