@@ -46,6 +46,11 @@ export interface Story {
 export interface WorkflowState {
   id: string;
   name: string;
+  description?: string | null;
+  color?: string | null;
+  isDefault?: boolean;
+  isInitial?: boolean;
+  isFinal?: boolean;
   order: number;
   projectId: string;
 }
@@ -100,6 +105,12 @@ interface BacklogState {
   createStory: (data: Partial<Story>) => Promise<void>;
   updateStory: (id: string, updates: Partial<Story>) => Promise<void>;
 
+  // Workflow config
+  fetchWorkflowStatesByProject: (projectId: string) => Promise<void>;
+  createWorkflowState: (projectId: string, data: Partial<WorkflowState> & { name: string }) => Promise<void>;
+  updateWorkflowState: (projectId: string, id: string, data: Partial<WorkflowState>) => Promise<void>;
+  deleteWorkflowState: (projectId: string, id: string) => Promise<void>;
+
   // Comments & History
   addComment: (storyId: string, content: string) => Promise<void>;
   fetchComments: (storyId: string) => Promise<Comment[]>;
@@ -153,7 +164,7 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
       const [epicsRes, sprintsRes, workflowStatesRes] = await Promise.all([
         fetch(`/api/v1/epics/project/${id}`),
         fetch(`/api/v1/sprints/project/${id}`),
-        fetch(`/api/v1/workflow/states/project/${id}`)
+        fetch(`/api/v1/projects/${id}/workflow`)
       ]);
       
       if (!epicsRes.ok || !sprintsRes.ok || !workflowStatesRes.ok) {
@@ -170,6 +181,17 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
       await get().fetchStoriesByProject(id);
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Project data error', loading: false });
+    }
+  },
+
+  fetchWorkflowStatesByProject: async (projectId: string) => {
+    try {
+      const res = await fetch(`/api/v1/projects/${projectId}/workflow`);
+      if (!res.ok) throw new Error(`Workflow fetch failed (Status: ${res.status})`);
+      const data = await res.json();
+      set({ workflowStates: data });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Workflow fetch error' });
     }
   },
 
@@ -292,6 +314,46 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
       set({ stories: previousStories, error: 'Failed to update story' });
       throw err;
     }
+  },
+
+  createWorkflowState: async (projectId, data) => {
+    set({ error: null });
+    const res = await fetch(`/api/v1/projects/${projectId}/workflow`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      set({ error: 'Failed to create workflow state' });
+      return;
+    }
+    await get().fetchWorkflowStatesByProject(projectId);
+  },
+
+  updateWorkflowState: async (projectId, id, data) => {
+    set({ error: null });
+    const res = await fetch(`/api/v1/projects/${projectId}/workflow/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      set({ error: 'Failed to update workflow state' });
+      return;
+    }
+    await get().fetchWorkflowStatesByProject(projectId);
+  },
+
+  deleteWorkflowState: async (projectId, id) => {
+    set({ error: null });
+    const res = await fetch(`/api/v1/projects/${projectId}/workflow/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      set({ error: 'Failed to delete workflow state' });
+      return;
+    }
+    await get().fetchWorkflowStatesByProject(projectId);
   },
 
   addComment: async (storyId, content) => {

@@ -2,10 +2,10 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const DEFAULT_WORKFLOW_STATES = [
-  { name: 'unassigned', isInitial: true, isFinal: false, order: 0 },
-  { name: 'assigned', isInitial: false, isFinal: false, order: 1 },
-  { name: 'in_progress', isInitial: false, isFinal: false, order: 2 },
-  { name: 'done', isInitial: false, isFinal: true, order: 3 }
+  { name: 'unassigned', isInitial: true, isFinal: false, isDefault: true, order: 0, color: '#94a3b8' },
+  { name: 'assigned', isInitial: false, isFinal: false, isDefault: false, order: 1, color: '#6366f1' },
+  { name: 'in_progress', isInitial: false, isFinal: false, isDefault: false, order: 2, color: '#f59e0b' },
+  { name: 'done', isInitial: false, isFinal: true, isDefault: false, order: 3, color: '#10b981' }
 ];
 
 export class ProjectService {
@@ -22,6 +22,8 @@ export class ProjectService {
         data: DEFAULT_WORKFLOW_STATES.map((state) => ({
           projectId: project.id,
           name: state.name,
+          color: state.color,
+          isDefault: state.isDefault,
           isInitial: state.isInitial,
           isFinal: state.isFinal,
           order: state.order

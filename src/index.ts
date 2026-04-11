@@ -50,6 +50,12 @@ fastify.get('/api/v1/workflow/states', async () => (workflowService as any).getA
 fastify.get('/api/v1/workflow/states/project/:projectId', async (req: any) => workflowService.getAllStates(req.params.projectId));
 fastify.get('/api/v1/workflow/initial/project/:projectId', async (req: any) => workflowService.getInitialState(req.params.projectId));
 
+// Workflow Configuration (per project)
+fastify.get('/api/v1/projects/:projectId/workflow', async (req: any) => workflowService.listStates(req.params.projectId));
+fastify.post('/api/v1/projects/:projectId/workflow', async (req: any) => workflowService.createState(req.params.projectId, req.body));
+fastify.put('/api/v1/projects/:projectId/workflow/:id', async (req: any) => workflowService.updateState(req.params.projectId, req.params.id, req.body));
+fastify.delete('/api/v1/projects/:projectId/workflow/:id', async (req: any) => workflowService.deleteState(req.params.projectId, req.params.id));
+
 // Comment Routes
 fastify.get('/api/v1/comments/story/:storyId', async (req: any) => commentService.getByStory(req.params.storyId));
 fastify.post('/api/v1/comments', async (req: any) => commentService.create(req.body));

@@ -5,6 +5,7 @@ import { StoryEditor } from '../components/Accordion/StoryEditor';
 import { useStories } from '../hooks/useStories';
 import { useProjects } from '../hooks/useProjects';
 import { Filters } from '../components/Filters';
+import { WorkflowPanel } from '../components/WorkflowPanel';
 
 export const BacklogPage: React.FC = () => {
   const { fetchInitialData, createEpic, createStory, epics } = useBacklogStore();
@@ -16,6 +17,7 @@ export const BacklogPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [assigneeFilter, setAssigneeFilter] = useState('');
+  const [workflowOpen, setWorkflowOpen] = useState(false);
 
   useEffect(() => { fetchInitialData(); }, [fetchInitialData]);
 
@@ -89,6 +91,13 @@ export const BacklogPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setWorkflowOpen(true)}
+              disabled={!selectedProjectId}
+              className="bg-white text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold border border-slate-300 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Workflow
+            </button>
+            <button
               onClick={handleCreateEpic}
               disabled={!selectedProjectId}
               className="bg-white text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold border border-slate-300 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -143,6 +152,10 @@ export const BacklogPage: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {workflowOpen && selectedProjectId && (
+        <WorkflowPanel projectId={selectedProjectId} onClose={() => setWorkflowOpen(false)} />
+      )}
     </div>
   );
 };

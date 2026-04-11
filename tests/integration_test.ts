@@ -21,6 +21,26 @@ async function runE2ETest() {
     });
     console.log("✅ Proyecto creado:", project.name);
 
+    // Crear segundo proyecto para validar reglas por projectId (workflow)
+    const projectB = await projectService.create({
+      name: "Proyecto B " + Date.now(),
+      description: "Proyecto para validar workflow por projectId"
+    });
+    console.log("✅ Proyecto B creado:", projectB.name);
+
+    // Agregar un estado exclusivo de Project B
+    const exclusiveStateName = "blocked_b";
+    await prisma.workflowState.create({
+      data: {
+        projectId: projectB.id,
+        name: exclusiveStateName,
+        order: 10,
+        isInitial: false,
+        isFinal: false,
+        isDefault: false
+      }
+    });
+
     // 2. Crear Epic
     const epic = await epicService.create(project.id, { 
       name: "Integración MCP Core", 
@@ -37,6 +57,19 @@ async function runE2ETest() {
       priority: "high"
     });
     console.log("✅ Story creada e hilos de eventos disparados");
+
+    // QA: No permitir usar un estado que no pertenezca al projectId de la story
+    let invalidStatusAllowed = false;
+    try {
+      await storyService.update(story.id, { status: exclusiveStateName });
+      invalidStatusAllowed = true;
+    } catch {
+      // expected
+    }
+    if (invalidStatusAllowed) {
+      throw new Error("❌ Error: se permitió asignar un status que pertenece a otro projectId");
+    }
+    console.log("✅ QA: el status exclusivo de otro proyecto fue rechazado");
 
     // Esperar a que la persistencia asíncrona ocurra
     await new Promise(resolve => setTimeout(resolve, 1000));

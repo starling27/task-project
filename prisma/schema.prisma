@@ -91,6 +91,8 @@ model WorkflowState {
   project     Project @relation(fields: [projectId], references: [id])
   name        String
   description String?
+  color       String?
+  isDefault   Boolean @default(false)
   isInitial   Boolean @default(false)
   isFinal     Boolean @default(false)
   order       Int     @default(0)
