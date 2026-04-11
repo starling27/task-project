@@ -38,65 +38,35 @@ export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-      {/* Indicador de Guardado */}
-      <div className="flex justify-between items-center h-6">
-        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Story Details</h4>
-        <div className="flex items-center gap-2">
-          {saving ? (
-            <div className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold animate-pulse border border-indigo-100">
-              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping"></span>
-              SAVING CHANGES...
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold border border-emerald-100">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-              ALL CHANGES SAVED
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Descripción */}
-        <div className="flex flex-col gap-2 group">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Description</label>
-            <span className="text-[10px] text-gray-300 font-medium group-focus-within:text-indigo-400 transition-colors uppercase">Markdown Supported</span>
-          </div>
-          <textarea
-            className="w-full p-4 border border-gray-200 rounded-xl h-48 text-sm text-gray-700 bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none shadow-sm"
-            placeholder="Describe the user story and its business value..."
-            value={localData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
-          />
-        </div>
-
-        {/* Criterios de Aceptación */}
-        <div className="flex flex-col gap-2 group">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Acceptance Criteria</label>
-            <span className="text-[10px] text-gray-300 font-medium group-focus-within:text-indigo-400 transition-colors uppercase">Gherkin Format Recommended</span>
-          </div>
-          <textarea
-            className="w-full p-4 border border-gray-200 rounded-xl h-48 text-sm font-mono text-gray-600 bg-gray-50/50 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none shadow-sm"
-            placeholder="Given... When... Then..."
-            value={localData.acceptanceCriteria}
-            onChange={(e) => handleChange('acceptanceCriteria', e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Observaciones */}
-      <div className="flex flex-col gap-2 group">
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Collaborator Observations</label>
+  // Dentro del return de StoryEditor:
+  <div className="space-y-6 pt-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-2">
+        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Descripción</label>
         <textarea
-          className="w-full p-4 border border-gray-200 rounded-xl h-24 text-sm italic text-gray-600 bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all resize-none shadow-sm"
-          placeholder="Add any technical notes or blocking observations..."
-          value={localData.observations}
-          onChange={(e) => handleChange('observations', e.target.value)}
+          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm leading-relaxed focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all h-40 shadow-inner"
+          value={localData.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Criterios de Aceptación</label>
+        <textarea
+          className="w-full p-4 bg-slate-900 text-blue-100 border border-slate-800 rounded-xl text-xs font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none transition-all h-40 shadow-2xl"
+          value={localData.acceptanceCriteria}
+          onChange={(e) => handleChange('acceptanceCriteria', e.target.value)}
         />
       </div>
     </div>
+    
+    {/* Indicador de autoguardado elegante */}
+    <div className="flex items-center gap-2 justify-end px-2">
+      <div className={`w-2 h-2 rounded-full ${saving ? 'bg-blue-500 animate-ping' : 'bg-emerald-500'}`} />
+      <span className="text-[10px] font-bold text-slate-400 uppercase">
+        {saving ? 'Sincronizando...' : 'Cambios guardados localmente'}
+      </span>
+    </div>
+  </div>
   );
 };
