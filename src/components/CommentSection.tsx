@@ -39,11 +39,11 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ storyId }) => {
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
             <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-700 shrink-0">
-              {comment.user.name.charAt(0).toUpperCase()}
+              {comment.author.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[11px] font-bold text-gray-700">{comment.user.name}</span>
+                <span className="text-[11px] font-bold text-gray-700">{comment.author}</span>
                 <span className="text-[9px] text-gray-400 font-medium">
                   {new Date(comment.createdAt).toLocaleDateString()} {new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>

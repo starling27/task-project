@@ -13,7 +13,7 @@ export interface EventPayloads {
   [SystemEvents.STORY_UPDATED]: { storyId: string; changes: any };
   [SystemEvents.STORY_STATUS_CHANGED]: { storyId: string; oldStatus: string; newStatus: string };
   [SystemEvents.STORY_ASSIGNED]: { storyId: string; oldAssigneeId?: string; newAssigneeId?: string };
-  [SystemEvents.COMMENT_ADDED]: { storyId: string; commentId: string; userId: string };
+  [SystemEvents.COMMENT_ADDED]: { storyId: string; commentId: string; author: string };
 }
 
 class EventBus extends EventEmitter {

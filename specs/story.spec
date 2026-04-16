@@ -1,8 +1,9 @@
 # 📦 story.spec (refactored)
 
 context:
-  name: Story Management
-  description: Core entity representing a unit of work, decoupled from workflow, comments, and integration
+  name: Gestión de Story
+  description: Entidad core que representa una unidad de trabajo, 
+  desacoplada de workflow, comentarios e integración
 
 entity:
   name: Story
@@ -41,10 +42,6 @@ entity:
       type: string
       required: true
 
-    sprintId:
-      type: uuid
-      required: false
-
     assigneeId:
       type: uuid
       required: false
@@ -71,6 +68,9 @@ entity:
     updatedAt:
       type: datetime
 
+    deletedAt:
+      type: datetime
+
 relations:
 
   - type: belongsTo
@@ -92,13 +92,13 @@ relations:
 
 rules:
 
-  - name: Status must exist in workflow
+  - name: El status debe existir en WorkflowState
     validation: exists(WorkflowState, status)
 
-  - name: Story must belong to an epic
+  - name: Story debe pertenecer a un Epic
     validation: exists(Epic, epicId)
 
-  - name: Story must have valid story points
+  - name: Story debe tener storyPoints válidos
     validation: required(storyPoints)
 
 api:
@@ -144,4 +144,3 @@ use_cases:
   - name: Change Status
   - name: Assign User
   - name: Add Comment
-  - name: Assign to Sprint

@@ -10,7 +10,7 @@ const DEFAULT_WORKFLOW_STATES = [
 
 export class ProjectService {
   async create(data: { name: string; description?: string }) {
-    const existing = await prisma.project.findUnique({ where: { name: data.name } });
+    const existing = await prisma.project.findFirst({ where: { name: data.name, deletedAt: null } });
     if (existing) throw new Error('Project name must be unique');
 
     if (data.name.length < 3) throw new Error('Project name too short');
@@ -35,30 +35,62 @@ export class ProjectService {
   }
 
   async getAll() {
-    return prisma.project.findMany({ include: { _count: { select: { epics: true } } } });
+    return prisma.project.findMany({ 
+      where: { deletedAt: null },
+      include: { _count: { select: { epics: true } } } 
+    });
   }
 
   async getById(id: string) {
-    return prisma.project.findUnique({ where: { id }, include: { epics: true } });
+    return prisma.project.findFirst({ 
+      where: { id, deletedAt: null }, 
+      include: { epics: { where: { deletedAt: null } } } 
+    });
   }
 
   async update(id: string, data: { name?: string; description?: string }) {
+    const project = await prisma.project.findFirst({ where: { id, deletedAt: null } });
+    if (!project) throw new Error('Project not found');
+
     if (data.name) {
-      const existing = await prisma.project.findUnique({ where: { name: data.name } });
+      const existing = await prisma.project.findFirst({ where: { name: data.name, deletedAt: null } });
       if (existing && existing.id !== id) throw new Error('Project name must be unique');
     }
     return prisma.project.update({ where: { id }, data });
   }
 
   async delete(id: string) {
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: { _count: { select: { epics: true } } }
+    const project = await prisma.project.findFirst({
+      where: { id, deletedAt: null }
     });
 
     if (!project) throw new Error('Project not found');
-    if (project._count.epics > 0) throw new Error('Cannot delete project with epics');
 
-    return prisma.project.delete({ where: { id } });
+    const now = new Date();
+
+    return prisma.$transaction(async (tx) => {
+      const epics = await tx.epic.findMany({
+        where: { projectId: id, deletedAt: null },
+        select: { id: true }
+      });
+      const epicIds = epics.map(e => e.id);
+
+      if (epicIds.length > 0) {
+        await tx.story.updateMany({
+          where: { epicId: { in: epicIds }, deletedAt: null },
+          data: { deletedAt: now }
+        });
+
+        await tx.epic.updateMany({
+          where: { projectId: id, deletedAt: null },
+          data: { deletedAt: now }
+        });
+      }
+
+      return tx.project.update({ 
+        where: { id }, 
+        data: { deletedAt: now } 
+      });
+    });
   }
 }

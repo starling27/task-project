@@ -1,8 +1,8 @@
 # 📦 assignee-history.spec
 
 context:
-  name: Assignee Tracking
-  description: Tracks assignment changes for stories
+  name: Tracking de Assignee
+  description: Registra cambios de asignación para Story
 
 entity:
   name: AssigneeHistory
@@ -31,10 +31,10 @@ relations:
 
 rules:
 
-  - name: Assignee must be valid user
+  - name: Assignee debe ser un User válido
     validation: exists(User, assignedTo)
 
 use_cases:
 
-  - name: Assign User
-  - name: Get Assignment History
+  - name: Asignar User
+  - name: Obtener historial de asignaciones

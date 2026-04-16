@@ -60,7 +60,10 @@ export class JiraSyncWorker {
           data: { status: 'processing' }
         });
 
-        const story = await prisma.story.findUnique({ where: { id: task.storyId } });
+        const story = await prisma.story.findUnique({ 
+          where: { id: task.storyId },
+          include: { epic: true }
+        });
         if (!story) throw new Error('Story not found for sync');
 
         // Transformar e Inviar a Jira via MCP

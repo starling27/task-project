@@ -1,25 +1,28 @@
 # 📦 ui-accordion.spec
 
 context:
-  name: Accordion Backlog UI
-  description: Displays all backlog items in a single view with expandable accordion behavior for inline editing
+  name: UI de Backlog En Acordeón
+  description: Muestra todos los items del backlog en una sola vista 
+  con comportamiento de acordeón expandible para edición en línea.
+
 
 ui:
 
   layout:
 
     type: single-view
-    description: All stories displayed in one screen grouped optionally by epic or sprint
+    description: Todas las Story se muestran en una pantalla, 
+    agrupadas opcionalmente por Epic, se pueden eliminar las epic y las story
 
   components:
 
     - name: BacklogContainer
       type: container
-      responsibility: holds all stories in a scrollable view
+      responsibility: contiene todas las Story en una vista con scroll
 
     - name: StoryAccordionItem
       type: interactive
-      responsibility: displays summary and expandable detail of a story
+      responsibility: muestra el resumen y el detalle expandible de una Story
 
     - name: StoryHeader
       type: compact-row
@@ -92,7 +95,6 @@ grouping:
   options:
 
     - by_epic
-    - by_sprint
     - flat_list
 
   default: by_epic
@@ -128,6 +130,25 @@ rules:
     type: system
     validation: optimisticUI
 
+   - name: Se debe poder cambiar entre epic para poder seleccionar donde se creara la new story
+   type: system
+
+   - name: Se debe porder eliminar stories, tener un botón que consuma el endpoint de eliminación
+   type: system
+
+   - name: Se debe porder eliminar epic, tener un botón que consuma el endpoint de eliminación
+   type: system
+
+   - name: Se debe porder eliminar Proyect, tener un botón que consuma el endpoint de eliminación
+   type: system
+
+   - name: Se debe porder crear User
+   type: system
+
+   - name: Se debe porder eliminar user, tener un botón que consuma el endpoint de eliminación
+   type: system
+
+
 ---
 
 api_bindings:
@@ -147,24 +168,24 @@ tests:
 
   unit:
 
-    - name: Should open accordion on click
+    - name: Debe abrir el acordeón al hacer click
       action: clickItem
       expect:
         expanded: true
 
-    - name: Should close previous accordion
+    - name: Debe cerrar el acordeón anterior
       action: openAnotherItem
       expect:
         previousClosed: true
 
-    - name: Should update status inline
+    - name: Debe actualizar el status en línea
       action: changeStatus
       expect:
         updated: true
 
   integration:
 
-    - name: Edit story inline and persist
+    - name: Editar story en línea y persistir
       steps:
         - openAccordion
         - editTitle
@@ -172,14 +193,14 @@ tests:
       expect:
         persisted: true
 
-    - name: Assign user and reflect immediately
+    - name: Asignar usuario y reflejar inmediatamente
       steps:
         - openAccordion
         - assignUser
       expect:
         uiUpdated: true
 
-    - name: Autosave observations
+    - name: Auto-guardado de observaciones
       steps:
         - openAccordion
         - typeObservation

@@ -1,8 +1,8 @@
 # 📦 jira-sync-queue.spec
 
 context:
-  name: Jira Sync Queue
-  description: Handles async synchronization with Jira
+  name: JiraSyncQueue
+  description: Maneja la sincronización asíncrona con Jira
 
 entity:
   name: JiraSyncQueue
@@ -37,11 +37,11 @@ relations:
 
 rules:
 
-  - name: Retry limit max 5
+  - name: Límite de reintentos máximo 5
     validation: retries <= 5
 
 use_cases:
 
-  - name: Add to Queue
-  - name: Process Queue
-  - name: Retry Failed Jobs
+  - name: Agregar a la cola
+  - name: Procesar la cola
+  - name: Reintentar trabajos fallidos

@@ -43,7 +43,7 @@ export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
       } finally {
         setSaving(false);
       }
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [localData, onSave, story]);

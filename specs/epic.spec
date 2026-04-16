@@ -1,8 +1,8 @@
 # 📦 epic.spec
 
 context:
-  name: Epic Management
-  description: Handles epics within a project
+  name: Gestión de Epic
+  description: Maneja los Epic dentro de un Project
 
 entity:
   name: Epic
@@ -30,6 +30,8 @@ entity:
       type: datetime
     updatedAt:
       type: datetime
+    deletedAt:
+      type: datetime
 
 relations:
 
@@ -39,7 +41,7 @@ relations:
 
 use_cases:
 
-  - name: Create Epic
+  - name: Crear Epic
     input:
       projectId: uuid
       name: string
@@ -47,19 +49,19 @@ use_cases:
     output:
       epic: Epic
 
-  - name: Get Epics by Project
+  - name: Obtener Epic por Project
     input:
       projectId: uuid
     output:
       epics: Epic[]
 
-  - name: Get Epic By ID
+  - name: Obtener Epic Por ID
     input:
       id: uuid
     output:
       epic: Epic
 
-  - name: Update Epic
+  - name: Actualizar Epic
     input:
       id: uuid
       name: string
@@ -68,7 +70,7 @@ use_cases:
     output:
       epic: Epic
 
-  - name: Delete Epic
+  - name: Eliminar Epic
     input:
       id: uuid
     output:
@@ -76,21 +78,18 @@ use_cases:
 
 rules:
 
-  - name: Epic must belong to an existing project
+  - name: Epic debe pertenecer a un Project existente
     type: business
     validation: exists(Project, projectId)
 
-  - name: Epic name must be unique within a project
+  - name: El nombre de Epic debe ser único dentro de un Project
     type: business
     validation: uniqueWithin(projectId, name)
 
-  - name: Cannot delete epic with stories
-    type: business
-    validation: hasNoStories(epicId)
-
-  - name: Archived epics cannot be updated
+  - name: Los Epic archivados no se pueden actualizar
     type: business
     validation: notArchived(epicId)
+
 
 api:
 
@@ -100,48 +99,48 @@ api:
 
     - method: POST
       path: /
-      use_case: Create Epic
+      use_case: Crear Epic
 
     - method: GET
       path: /project/:projectId
-      use_case: Get Epics by Project
+      use_case: Obtener Epic por Project
 
     - method: GET
       path: /:id
-      use_case: Get Epic By ID
+      use_case: Obtener Epic Por ID
 
     - method: PUT
       path: /:id
-      use_case: Update Epic
+      use_case: Actualizar Epic
 
     - method: DELETE
       path: /:id
-      use_case: Delete Epic
+      use_case: Eliminar Epic
 
 tests:
 
   unit:
 
-    - name: Should create epic with valid project
+    - name: Debe crear un epic con project válido
       given:
         projectId: valid-project-id
         name: "User Management"
       expect:
         success: true
 
-    - name: Should fail if project does not exist
+    - name: Debe fallar si el project no existe
       given:
         projectId: invalid-id
       expect:
         error: "Project does not exist"
 
-    - name: Should fail if name is duplicated in same project
+    - name: Debe fallar si el nombre está duplicado en el mismo project
       given:
         name: "Existing Epic"
       expect:
         error: "Epic name must be unique within project"
 
-    - name: Should prevent update if epic is archived
+    - name: Debe impedir actualizar si el epic está archivado
       given:
         status: archived
       expect:
@@ -149,7 +148,7 @@ tests:
 
   integration:
 
-    - name: Create epic inside project and fetch it
+    - name: Crear epic dentro de project y consultarlo
       steps:
         - createProject
         - createEpic
@@ -157,19 +156,19 @@ tests:
       expect:
         epicExists: true
 
-    - name: Prevent deleting epic with stories
-      steps:
-        - createProject
-        - createEpic
-        - createStory
-        - deleteEpic
-      expect:
-        error: "Cannot delete epic with stories"
-
-    - name: Get epics by project
+    - name: Obtener epics por project
       steps:
         - createProject
         - createEpic
         - getEpicsByProject
       expect:
         epicsCount: 1
+
+    - name: Eliminar epic con historias (cascada)
+      steps:
+        - createProject
+        - createEpic
+        - createStory
+        - deleteEpic
+      expect:
+        success: true

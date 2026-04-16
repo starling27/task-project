@@ -2,58 +2,60 @@
 
 ---
 
-## 🎯 Architecture Overview
+## 🎯 Resumen De Arquitectura
 
-This system follows a modular, scalable, and event-driven full-stack architecture designed for backlog management and Jira integration.
+Este sistema sigue una arquitectura full-stack modular, escalable y orientada a eventos, diseñada para gestión de backlog e integración con Jira.
 
-### Key principles:
+### Principios clave:
 
-- Modular design (domain-driven)
-- Event-driven processing
-- Decoupled integrations
-- Async-first architecture
-- Optimistic UI experience
+- Diseño modular (domain-driven)
+- Procesamiento orientado a eventos
+- Integraciones desacopladas
+- Arquitectura "async-first"
+- Experiencia de UI optimista
+- principios solid
+- arquitectura hexagonal
 
 ---
 
-## 🧱 High-Level Architecture
+## 🧱 Arquitectura De Alto Nivel
 
 Frontend (React)
    ↓
 Backend API (Node.js)
    ↓
-Database (PostgreSQL)
+Database (sqlLite)
 
-Event Layer:
+Capa de eventos:
    → Internal Events Bus
    → Queue System (JiraSyncQueue)
 
-External Integration:
+Integración externa:
    ↔ Jira MCP
 
 ---
 
-## 🖥️ Frontend Architecture
+## 🖥️ Arquitectura Frontend
 
-### Tech Stack
+### Stack tecnológico
 
 - React (Vite)
-- Zustand (state management)
-- TanStack Query (server sync)
+- Zustand (gestión de estado)
+- TanStack Query (sincronización con servidor)
 - Tailwind CSS
 
 ---
 
-### UI Strategy
+### Estrategia de UI
 
-- Single-page backlog view
-- Accordion-based interaction
-- Inline editing (no modals)
-- Optimistic updates
+- Vista de backlog en una sola página
+- Interacción basada en acordeón
+- Edición en línea (sin modales)
+- Actualizaciones optimistas
 
 ---
 
-### Component Structure
+### Estructura de componentes
 
 
 /src
@@ -72,7 +74,7 @@ External Integration:
 
 ---
 
-### UI Data Sources
+### Fuentes de datos de UI
 
 | Feature | Endpoint |
 |--------|--------|
@@ -84,18 +86,18 @@ External Integration:
 
 ---
 
-## ⚙️ Backend Architecture
+## ⚙️ Arquitectura Backend
 
-### Tech Stack
+### Stack tecnológico
 
 - Node.js
-- Framework: Fastify (recommended)
+- Framework: Fastify (recomendado)
 - ORM: Prisma
 - Queue: BullMQ / RabbitMQ (optional)
 
 ---
 
-### Module Structure
+### Estructura de módulos
 
 
 /backend
@@ -119,32 +121,33 @@ External Integration:
 
 ---
 
-## 🗄️ Data Model (Refactored)
+## 🗄️ Modelo De Datos (Refactorizado)
 
-### Core Entities
+### Entidades core
 
-- Project
-- Epic
-- Story
-
----
-
-### Supporting Entities
-
-- Comment → collaboration layer
-- WorkflowState → dynamic workflow definition
-- StatusHistory → audit trail
-- AssigneeHistory → assignment tracking
+- Project (Soft Delete)
+- Epic (Soft Delete)
+- Story (Soft Delete)
+- User (Soft Delete)
 
 ---
 
-### Integration Entity
+### Entidades de soporte
 
-- JiraSyncQueue → async processing layer
+- Comment → capa de colaboración (Inmutable)
+- WorkflowState → definición dinámica del workflow
+- StatusHistory → auditoría
+- AssigneeHistory → tracking de asignaciones
 
 ---
 
-### Relationships
+### Entidad de integración
+
+- JiraSyncQueue → capa de procesamiento asíncrono
+
+---
+
+### Relaciones
 
 
 Project
@@ -158,7 +161,7 @@ Project
 
 ---
 
-## 🔄 Event-Driven Architecture
+## 🔄 Arquitectura Orientada A Eventos
 
 ### Events
 
@@ -170,14 +173,14 @@ Project
 
 ---
 
-### Flow
+### Flujo
 
 
-User Action
+Acción del usuario
 ↓
-API Update
+Actualización API
 ↓
-Event Emitted
+Evento emitido
 ↓
 Queue (JiraSyncQueue)
 ↓
@@ -188,36 +191,36 @@ Jira MCP
 
 ---
 
-## 🔌 Jira Integration (Advanced)
+## 🔌 Integración Con Jira (Avanzada)
 
-### Characteristics
+### Características
 
-- Async synchronization
-- Retry mechanism with backoff
-- Idempotent operations
-- Event-triggered sync
+- Sincronización asíncrona
+- Reintentos con backoff
+- Operaciones idempotentes
+- Sincronización disparada por eventos
 
 ---
 
 ### Flow
 
-1. Story updated
-2. Event emitted
-3. Added to queue
-4. Worker processes queue
-5. Sends data to Jira MCP
-6. Updates local state
+1. Story se actualiza
+2. Se emite un evento
+3. Se agrega a la cola
+4. El worker procesa la cola
+5. Envía datos a Jira MCP
+6. Actualiza el estado local
 
 ---
 
-### Queue Model
+### Modelo de cola
 
-| Field | Purpose |
+| Field | Propósito |
 |------|--------|
-| storyId | Reference |
+| storyId | Referencia |
 | action | create/update |
 | status | pending/failed/success |
-| retries | retry count |
+| retries | contador de reintentos |
 
 ---
 

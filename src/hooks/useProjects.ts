@@ -11,10 +11,15 @@ export const useProjects = () => {
     await store.createProject(name, description);
   };
 
+  const deleteProject = async (id: string) => {
+    await store.deleteProject(id);
+  };
+
   return {
     projects: store.projects,
     selectedProjectId: store.selectedProjectId,
     selectProject,
     createProject,
+    deleteProject,
   };
 };

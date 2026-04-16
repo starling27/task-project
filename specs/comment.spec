@@ -1,8 +1,8 @@
 # 📦 comment.spec
 
 context:
-  name: Comment Management
-  description: Stores observations and collaboration messages on stories
+  name: Gestión de Comment
+  description: Almacena observaciones y mensajes de colaboración sobre Story
 
 entity:
   name: Comment
@@ -35,13 +35,13 @@ relations:
 
 rules:
 
-  - name: Comment cannot be empty
+  - name: Comment no puede estar vacío
     validation: minLength(content, 1)
 
-  - name: Comments are immutable
+  - name: Los Comment son inmutables
     validation: noUpdate(content)
 
 use_cases:
 
-  - name: Add Comment
-  - name: Get Comments by Story
+  - name: Agregar Comment
+  - name: Obtener Comment por Story

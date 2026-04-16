@@ -1,8 +1,8 @@
 # 📦 status-history.spec
 
 context:
-  name: Status Tracking
-  description: Tracks all status changes for stories
+  name: Tracking de Status
+  description: Registra todos los cambios de status para Story
 
 entity:
   name: StatusHistory
@@ -34,10 +34,10 @@ relations:
 
 rules:
 
-  - name: Status change must be valid
+  - name: El cambio de status debe ser válido
     validation: exists(WorkflowState, toStatus)
 
 use_cases:
 
-  - name: Track Status Change
-  - name: Get Story History
+  - name: Registrar cambio de status
+  - name: Obtener historial de Story

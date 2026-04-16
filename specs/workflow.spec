@@ -1,8 +1,8 @@
 # 📦 specs/workflow.spec
 
 context:
-  name: Workflow Configuration
-  description: Gestión dinámica de estados y transiciones por proyecto
+  name: Configuración de Workflow
+  description: Gestión dinámica de estados y transiciones por projectId
 
 entity:
   name: WorkflowState
@@ -33,9 +33,9 @@ relations:
     foreignKey: projectId
 
 rules:
-  - name: Unique state name per project
+  - name: Nombre de estado único por Project
     validation: unique(name, projectId)
-  - name: Minimum one state per project
+  - name: Mínimo un estado por Project
     validation: min_count(1, projectId)
 
 api:

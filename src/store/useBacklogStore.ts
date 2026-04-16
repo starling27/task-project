@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { apiService } from '../services/apiService';
 
 // Interfaces
 export interface User {
@@ -20,18 +21,9 @@ export interface Epic {
   description?: string;
 }
 
-export interface Sprint {
-  id: string;
-  projectId: string;
-  name: string;
-  goal?: string;
-  status: string;
-}
-
 export interface Story {
   id: string;
   epicId: string;
-  sprintId?: string;
   assigneeId?: string;
   title: string;
   description: string;
@@ -60,7 +52,7 @@ export interface Comment {
   storyId: string;
   content: string;
   createdAt: string;
-  user: User;
+  author: string;
 }
 
 export interface HistoryItem {
@@ -75,10 +67,15 @@ export interface HistoryItem {
   assignedAt?: string;
 }
 
+export interface FiltersState {
+  status: string[];
+  priority: string[];
+  assigneeId: string[];
+}
+
 interface BacklogState {
   projects: Project[];
   epics: Epic[];
-  sprints: Sprint[];
   stories: Story[];
   users: User[];
   workflowStates: WorkflowState[];
@@ -87,23 +84,34 @@ interface BacklogState {
   loading: boolean;
   error: string | null;
 
+  filters: FiltersState;
+
   // Actions
   fetchInitialData: () => Promise<void>;
   selectProject: (id: string) => void;
   
+  // Filters
+  setFilters: (filters: Partial<FiltersState>) => void;
+  clearFilters: () => void;
+  toggleFilter: (category: keyof FiltersState, value: string) => void;
+  
   // Projects
   createProject: (name: string, description: string) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   
   // Epics
   createEpic: (projectId: string, name: string, description: string) => Promise<void>;
-  
-  // Sprints
-  createSprint: (projectId: string, name: string, goal: string) => Promise<void>;
+  deleteEpic: (id: string) => Promise<void>;
   
   // Stories
   fetchStoriesByProject: (projectId: string) => Promise<void>;
   createStory: (data: Partial<Story>) => Promise<void>;
   updateStory: (id: string, updates: Partial<Story>) => Promise<void>;
+  deleteStory: (id: string) => Promise<void>;
+
+  // Users
+  createUser: (name: string, email: string) => Promise<void>;
+  deleteUser: (id: string) => Promise<void>;
 
   // Workflow config
   fetchWorkflowStatesByProject: (projectId: string) => Promise<void>;
@@ -120,27 +128,36 @@ interface BacklogState {
 export const useBacklogStore = create<BacklogState>((set, get) => ({
   projects: [],
   epics: [],
-  sprints: [],
   stories: [],
   users: [],
   workflowStates: [],
   selectedProjectId: null,
   loading: false,
   error: null,
+  filters: {
+    status: [],
+    priority: [],
+    assigneeId: []
+  },
 
   fetchInitialData: async () => {
     set({ loading: true, error: null });
     try {
-      const [projectsRes, usersRes] = await Promise.all([
-        fetch('/api/v1/projects'),
-        fetch('/api/v1/users')
-      ]);
-      
-      if (!projectsRes.ok || !usersRes.ok) throw new Error('Failed to fetch initial data from server');
+      // Load filters from localStorage
+      const savedFilters = localStorage.getItem('backlog_filters');
+      if (savedFilters) {
+        try {
+          set({ filters: JSON.parse(savedFilters) });
+        } catch (e) {
+          console.error('Failed to parse saved filters', e);
+        }
+      }
 
-      const projects = await projectsRes.json();
-      const users = await usersRes.json();
-      
+      const [projects, users] = await Promise.all([
+        apiService.get<Project[]>('/api/v1/projects'),
+        apiService.get<User[]>('/api/v1/users')
+      ]);
+
       const firstProjectId = projects[0]?.id || null;
 
       set({ 
@@ -161,20 +178,14 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
   selectProject: async (id: string) => {
     set({ selectedProjectId: id, loading: true, stories: [], error: null });
     try {
-      const [epicsRes, sprintsRes, workflowStatesRes] = await Promise.all([
-        fetch(`/api/v1/epics/project/${id}`),
-        fetch(`/api/v1/sprints/project/${id}`),
-        fetch(`/api/v1/projects/${id}/workflow`)
+      const [epics, workflowStates] = await Promise.all([
+        apiService.get<Epic[]>(`/api/v1/epics/project/${id}`),
+        apiService.get<WorkflowState[]>(`/api/v1/projects/${id}/workflow`)
       ]);
-      
-      if (!epicsRes.ok || !sprintsRes.ok || !workflowStatesRes.ok) {
-        throw new Error(`Project data fetch failed (Status: ${epicsRes.status})`);
-      }
 
       set({ 
-        epics: await epicsRes.json(),
-        sprints: await sprintsRes.json(),
-        workflowStates: await workflowStatesRes.json(),
+        epics,
+        workflowStates,
         loading: false 
       });
       
@@ -186,9 +197,7 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
 
   fetchWorkflowStatesByProject: async (projectId: string) => {
     try {
-      const res = await fetch(`/api/v1/projects/${projectId}/workflow`);
-      if (!res.ok) throw new Error(`Workflow fetch failed (Status: ${res.status})`);
-      const data = await res.json();
+      const data = await apiService.get<WorkflowState[]>(`/api/v1/projects/${projectId}/workflow`);
       set({ workflowStates: data });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Workflow fetch error' });
@@ -197,10 +206,7 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
 
   fetchStoriesByProject: async (projectId: string) => {
     try {
-      const res = await fetch(`/api/v1/stories/project/${projectId}`);
-      if (!res.ok) throw new Error(`Stories fetch failed (Status: ${res.status})`);
-      
-      const data = await res.json();
+      const data = await apiService.get<Story[]>(`/api/v1/stories/project/${projectId}`);
       set({ stories: data });
     } catch (err) {
       set({ error: err instanceof Error ? err.message : 'Stories fetch error' });
@@ -209,48 +215,39 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
 
   createProject: async (name, description) => {
     try {
-      const res = await fetch('/api/v1/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description })
-      });
-      if (res.ok) {
-        const newProject = await res.json();
-        set(state => ({ projects: [...state.projects, newProject] }));
-        await get().selectProject(newProject.id);
-      }
+      const newProject = await apiService.post<Project>('/api/v1/projects', { name, description });
+      set(state => ({ projects: [...state.projects, newProject] }));
+      await get().selectProject(newProject.id);
     } catch (err) {
       console.error(err);
     }
   },
 
+  deleteProject: async (id: string) => {
+    try {
+      await apiService.delete(`/api/v1/projects/${id}`);
+      set(state => ({ 
+        projects: state.projects.filter(p => p.id !== id),
+        selectedProjectId: state.selectedProjectId === id ? null : state.selectedProjectId
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+  
   createEpic: async (projectId, name, description) => {
     try {
-      const res = await fetch(`/api/v1/epics/${projectId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description })
-      });
-      if (res.ok) {
-        const newEpic = await res.json();
-        set(state => ({ epics: [...state.epics, newEpic] }));
-      }
+      const newEpic = await apiService.post<Epic>(`/api/v1/epics/${projectId}`, { name, description });
+      set(state => ({ epics: [...state.epics, newEpic] }));
     } catch (err) {
       console.error(err);
     }
   },
 
-  createSprint: async (projectId, name, goal) => {
+  deleteEpic: async (id: string) => {
     try {
-      const res = await fetch('/api/v1/sprints', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId, name, goal })
-      });
-      if (res.ok) {
-        const newSprint = await res.json();
-        set(state => ({ sprints: [...state.sprints, newSprint] }));
-      }
+      await apiService.delete(`/api/v1/epics/${id}`);
+      set(state => ({ epics: state.epics.filter(e => e.id !== id) }));
     } catch (err) {
       console.error(err);
     }
@@ -266,23 +263,12 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
         throw new Error('Cannot create a story without assigning it to an Epic.');
       }
 
-      const res = await fetch('/api/v1/stories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Failed to create story on the server.');
-      }
-
-      const newStory = await res.json();
+      const newStory = await apiService.post<Story>('/api/v1/stories', data);
       set(state => ({ stories: [...state.stories, newStory] }));
     } catch (err) {
       const error = err instanceof Error ? err.message : 'An unknown error occurred while creating the story.';
       set({ error });
-      console.error(error); // Keep console log for debugging
+      console.error(error);
     }
   },
 
@@ -304,68 +290,75 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
           ? `/api/v1/stories/${id}/assign`
           : `/api/v1/stories/${id}`;
 
-      const res = await fetch(endpoint, { 
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-      if (!res.ok) throw new Error('Failed to update story on server');
+      await apiService.patch(endpoint, updates);
     } catch (err) {
       set({ stories: previousStories, error: 'Failed to update story' });
       throw err;
     }
   },
 
+  deleteStory: async (id) => {
+    try {
+      await apiService.delete(`/api/v1/stories/${id}`);
+      set(state => ({ stories: state.stories.filter(s => s.id !== id) }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  createUser: async (name, email) => {
+    try {
+      const newUser = await apiService.post<User>('/api/v1/users', { name, email });
+      set(state => ({ users: [...state.users, newUser] }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
+  deleteUser: async (id) => {
+    try {
+      await apiService.delete(`/api/v1/users/${id}`);
+      set(state => ({ users: state.users.filter(u => u.id !== id) }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
   createWorkflowState: async (projectId, data) => {
     set({ error: null });
-    const res = await fetch(`/api/v1/projects/${projectId}/workflow`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) {
+    try {
+      await apiService.post(`/api/v1/projects/${projectId}/workflow`, data);
+      await get().fetchWorkflowStatesByProject(projectId);
+    } catch (err) {
       set({ error: 'Failed to create workflow state' });
-      return;
     }
-    await get().fetchWorkflowStatesByProject(projectId);
   },
 
   updateWorkflowState: async (projectId, id, data) => {
     set({ error: null });
-    const res = await fetch(`/api/v1/projects/${projectId}/workflow/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) {
+    try {
+      await apiService.put(`/api/v1/projects/${projectId}/workflow/${id}`, data);
+      await get().fetchWorkflowStatesByProject(projectId);
+    } catch (err) {
       set({ error: 'Failed to update workflow state' });
-      return;
     }
-    await get().fetchWorkflowStatesByProject(projectId);
   },
 
   deleteWorkflowState: async (projectId, id) => {
     set({ error: null });
-    const res = await fetch(`/api/v1/projects/${projectId}/workflow/${id}`, {
-      method: 'DELETE'
-    });
-    if (!res.ok) {
+    try {
+      await apiService.delete(`/api/v1/projects/${projectId}/workflow/${id}`);
+      await get().fetchWorkflowStatesByProject(projectId);
+    } catch (err) {
       set({ error: 'Failed to delete workflow state' });
-      return;
     }
-    await get().fetchWorkflowStatesByProject(projectId);
   },
 
   addComment: async (storyId, content) => {
-    const userId = get().users[0]?.id;
-    if (!userId) return;
+    const userName = get().users[0]?.name || 'Anonymous';
 
     try {
-      await fetch('/api/v1/comments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storyId, userId, content })
-      });
+      await apiService.post('/api/v1/comments', { storyId, author: userName, content });
     } catch (err) {
       console.error(err);
     }
@@ -373,9 +366,7 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
 
   fetchComments: async (storyId) => {
     try {
-      const res = await fetch(`/api/v1/comments/story/${storyId}`);
-      if (!res.ok) return [];
-      return res.json();
+      return await apiService.get<Comment[]>(`/api/v1/comments/story/${storyId}`);
     } catch (err) {
       return [];
     }
@@ -383,11 +374,36 @@ export const useBacklogStore = create<BacklogState>((set, get) => ({
 
   fetchHistory: async (storyId) => {
     try {
-      const res = await fetch(`/api/v1/history/story/${storyId}`);
-      if (!res.ok) return [];
-      return res.json();
+      return await apiService.get<HistoryItem[]>(`/api/v1/history/story/${storyId}`);
     } catch (err) {
       return [];
     }
+  },
+
+  setFilters: (newFilters) => {
+    set(state => {
+      const updatedFilters = { ...state.filters, ...newFilters };
+      localStorage.setItem('backlog_filters', JSON.stringify(updatedFilters));
+      return { filters: updatedFilters };
+    });
+  },
+
+  clearFilters: () => {
+    const emptyFilters = { status: [], priority: [], assigneeId: [] };
+    localStorage.setItem('backlog_filters', JSON.stringify(emptyFilters));
+    set({ filters: emptyFilters });
+  },
+
+  toggleFilter: (category, value) => {
+    set(state => {
+      const current = state.filters[category];
+      const updated = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value];
+      
+      const updatedFilters = { ...state.filters, [category]: updated };
+      localStorage.setItem('backlog_filters', JSON.stringify(updatedFilters));
+      return { filters: updatedFilters };
+    });
   }
 }));

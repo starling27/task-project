@@ -107,6 +107,7 @@ export class StoryService {
 
   async getAll() {
     return prisma.story.findMany({
+      where: { deletedAt: null },
       include: {
         assignee: true,
         epic: true,
@@ -118,6 +119,7 @@ export class StoryService {
   async getByProject(projectId: string) {
     return prisma.story.findMany({
       where: {
+        deletedAt: null,
         epic: {
           projectId: projectId,
         },
@@ -134,7 +136,7 @@ export class StoryService {
   }
 
   async getById(id: string) {
-    return prisma.story.findUnique({
+    const story = await prisma.story.findUnique({
       where: { id },
       include: {
         assignee: true,
@@ -143,6 +145,19 @@ export class StoryService {
         statusHistory: { orderBy: { changedAt: 'desc' } },
         assigneeHistory: { orderBy: { assignedAt: 'desc' }, include: { newAssignee: true } }
       }
+    });
+
+    if (!story || story.deletedAt) return null;
+    return story;
+  }
+
+  async delete(id: string) {
+    const story = await prisma.story.findUnique({ where: { id } });
+    if (!story) throw new Error('Story not found');
+
+    return prisma.story.update({
+      where: { id },
+      data: { deletedAt: new Date() }
     });
   }
 }

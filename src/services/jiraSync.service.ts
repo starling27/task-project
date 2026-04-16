@@ -13,17 +13,24 @@ export enum JiraIssueType {
 
 export class JiraTransformer {
   static toJiraIssue(story: any) {
-    return {
+    const payload: any = {
       fields: {
         summary: story.title,
         description: story.description,
         issuetype: { name: this.mapType(story.type) },
         priority: { name: this.mapPriority(story.priority) },
-        // Campos personalizados mapeados en spec
-        customfield_10001: story.acceptanceCriteria, // acceptanceCriteria
-        customfield_10002: story.storyPoints,      // storyPoints
+        // Custom Fields based on spec mappings
+        customfield_10001: story.acceptanceCriteria,
+        customfield_10002: story.storyPoints,
       }
     };
+
+    // Hierarchy mapping: Epic as parent
+    if (story.epic?.jiraIssueKey) {
+      payload.fields.parent = { key: story.epic.jiraIssueKey };
+    }
+
+    return payload;
   }
 
   private static mapPriority(p: string): JiraPriority {

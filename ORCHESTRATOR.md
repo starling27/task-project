@@ -1,70 +1,71 @@
 # 🧠 ORCHESTRATOR.md
 
-## 🎯 Purpose
+## 🎯 Propósito
 
-Coordinate execution of development tasks using sub-agents based on SDD specifications.
+Coordinar la ejecución de tareas de desarrollo usando sub-agentes basados en especificaciones SDD.
 
 ---
 
-## ⚙️ Execution Flow
+## ⚙️ Flujo De Ejecución
 
-1. Load context:
+1. Cargar contexto:
    - AGENTS.md
    - ARCHITECTURE.md
    - specs/
 
-2. Run Planner Agent
-3. Run Reviewer Agent
-4. Approve plan
+2. Ejecutar Planner Agent
+3. Ejecutar Reviewer Agent
+4. Aprobar el plan
 
-5. Execute phases:
-   - Spec refinement
-   - Code generation
-   - Validation
+5. Ejecutar fases:
+   - Refinamiento de specs
+   - Generación de código
+   - Validación
 
 ---
 
 ## 🤖 Agents
 
 ### Planner Agent
-Creates structured execution plan
+Crea un plan de ejecución estructurado, lee detalladamente las spec y propone el plan
+de acuardo a los cambios entre el estado actual del proyecto comparado con las especificaciones
 
 ### Reviewer Agent
-Analyzes and improves architecture
+Analiza y mejora la arquitectura
 
 ### Spec Agents
-Refine and validate specs
+Refinan y validan specs
 
 ### Code Agents
-Generate implementation
+Generan la implementación
 
 ### QA Agent
-Run tests and validate behavior
+Ejecuta pruebas y valida el comportamiento
 
 ---
 
-## 🔄 Task Delegation
+## 🔄 Delegación De Tareas
 
-Each task must include:
+Cada tarea debe incluir:
 
-- objective
-- input files
-- expected output
-- validation criteria
-
----
-
-## 📊 Execution Rules
-
-- Tasks must be atomic
-- Each phase must be validated before next
-- Failures must trigger retry or fix agent
+- objetivo
+- archivos de entrada
+- salida esperada
+- criterios de validación
 
 ---
 
-## 🚀 Success Criteria
+## 📊 Reglas De Ejecución
 
-- All specs validated
-- Code generated successfully
-- Tests passing
-- Jira integration working
+- Las tareas deben ser atómicas
+- Cada fase debe validarse antes de pasar a la siguiente
+- Los fallos deben activar reintento o un agente de corrección
+
+---
+
+## 🚀 Criterios De Éxito
+
+- Todos los specs validados
+- Código generado exitosamente
+- Pruebas pasando
+- Integración con Jira funcionando

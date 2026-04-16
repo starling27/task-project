@@ -1,8 +1,8 @@
 # 📦 jira-integration.spec
 
 context:
-  name: Jira Integration via MCP
-  description: Syncs local backlog with Jira using MCP protocol
+  name: Integración con Jira vía MCP
+  description: Sincroniza el backlog local con Jira usando el protocolo MCP
 
 integration:
   type: external
@@ -52,34 +52,34 @@ mappings:
 
 use_cases:
 
-  - name: Sync Project to Jira
-    description: Creates Jira project if not exists
+  - name: Sincronizar Project a Jira
+    description: Crea el Project en Jira si no existe
 
-  - name: Sync Epics to Jira
+  - name: Sincronizar Epic a Jira
     input:
       projectId: uuid
     output:
       jiraEpics: []
 
-  - name: Sync Stories to Jira
+  - name: Sincronizar Story a Jira
     input:
       epicId: uuid
     output:
       jiraIssues: []
 
-  - name: Sync Full Backlog
+  - name: Sincronizar backlog completo
     input:
       projectId: uuid
     output:
       synced: boolean
 
-  - name: Update Jira Issue from Local
+  - name: Actualizar issue de Jira desde local
     input:
       storyId: uuid
     output:
       updated: boolean
 
-  - name: Sync Jira to Local (pull)
+  - name: Sincronizar Jira a local (pull)
     input:
       projectKey: string
     output:
@@ -87,19 +87,19 @@ use_cases:
 
 rules:
 
-  - name: Only ready stories can be synced
+  - name: Solo se pueden sincronizar stories listas
     type: business
     validation: status in ['assigned','in_progress','in_pr_review','pr_approved','integrated']
 
-  - name: Epic must exist in Jira before stories
+  - name: Epic debe existir en Jira antes de sincronizar Story
     type: dependency
     validation: ensureEpicSynced(epicId)
 
-  - name: Avoid duplicate Jira issues
+  - name: Evitar issues duplicadas en Jira
     type: business
     validation: notExists(jiraIssueKey)
 
-  - name: Maintain idempotency
+  - name: Mantener idempotencia
     type: system
     validation: safeRetry(syncOperation)
 
@@ -183,19 +183,19 @@ tests:
 
   unit:
 
-    - name: Should map story to Jira format
+    - name: Debe mapear Story al formato Jira
       given:
         title: "Login"
       expect:
         summary: "Login"
 
-    - name: Should map priority correctly
+    - name: Debe mapear priority correctamente
       given:
         priority: high
       expect:
         jiraPriority: High
 
-    - name: Should prevent syncing non-ready stories
+    - name: Debe impedir sincronizar stories no listas
       given:
         status: draft
       expect:
@@ -203,7 +203,7 @@ tests:
 
   integration:
 
-    - name: Sync full backlog
+    - name: Sincronizar backlog completo
       steps:
         - createProject
         - createEpic
@@ -213,7 +213,7 @@ tests:
       expect:
         synced: true
 
-    - name: Ensure epic created before stories
+    - name: Asegurar que Epic se cree antes que Story
       steps:
         - createEpic
         - createStory
@@ -221,13 +221,13 @@ tests:
       expect:
         epicLinked: true
 
-    - name: Pull from Jira updates local
+    - name: Pull desde Jira actualiza local
       steps:
         - pullFromJira
       expect:
         localUpdated: true
 
-    - name: Retry on failure
+    - name: Reintentar en fallo
       steps:
         - simulateNetworkError
         - syncToJira

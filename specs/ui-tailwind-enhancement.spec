@@ -1,18 +1,19 @@
 # 📦 ui-tailwind-enhancement.spec
 
 context:
-  name: UI Tailwind Enhancement
-  description: Improves backlog UI using TailwindCSS with modern UX patterns (accordion, inline editing, visual hierarchy)
+  name: Mejora de UI con Tailwind
+  description: Mejora la UI del backlog usando TailwindCSS con patrones 
+  modernos de UX (acordeón, edición en línea, jerarquía visual)
 
 ---
 
 objectives:
 
-  - Improve visual hierarchy
-  - Enhance readability
-  - Provide better interaction feedback
-  - Modernize UI with TailwindCSS
-  - Maintain single-view accordion behavior
+  - Mejorar la jerarquía visual
+  - Mejorar la legibilidad
+  - Dar mejor feedback de interacción
+  - Modernizar la UI con TailwindCSS
+  - Mantener el comportamiento de acordeón en vista única
 
 ---
 
@@ -42,9 +43,9 @@ components:
       - border-r
 
     features:
-      - project list
-      - active project highlight
-      - hover effects
+      - lista de proyectos
+      - resaltado del proyecto activo
+      - efectos hover
 
 ---
 
@@ -60,9 +61,9 @@ components:
       - bg-white
 
     elements:
-      - project title
-      - filters (by epic / by sprint)
-      - create story button
+      - título del proyecto
+      - filtros (por epic)
+      - botón de crear story
 
 ---
 
@@ -187,8 +188,8 @@ interaction:
 
   hover_effects:
 
-    - highlight_row
-    - show_actions
+    - resaltar_fila
+    - mostrar_acciones
 
   inline_editing:
 
@@ -201,12 +202,12 @@ interaction:
 visual_improvements:
 
   spacing:
-    - consistent padding (p-4, p-6)
-    - margin between items (mb-2, mb-4)
+    - padding consistente (p-4, p-6)
+    - margen entre items (mb-2, mb-4)
 
   typography:
-    - titles: text-lg font-semibold
-    - content: text-sm text-gray-600
+    - títulos: text-lg font-semibold
+    - contenido: text-sm text-gray-600
 
   colors:
     - primary: indigo
@@ -217,18 +218,18 @@ visual_improvements:
 
 ux_enhancements:
 
-  - highlight active story
-  - loading skeletons
-  - empty states
-  - toast notifications on save
-  - error inline feedback
+  - resaltar story activa
+  - skeletons de carga
+  - estados vacíos
+  - notificaciones tipo toast al guardar
+  - feedback de error en línea
 
 ---
 
 performance:
 
-  - virtual_scroll: recommended
-  - memoization: required
+  - virtual_scroll: recomendado
+  - memoization: requerido
   - lazy_render_details: true
 
 ---
@@ -247,21 +248,21 @@ tests:
 
   unit:
 
-    - name: Story item renders collapsed
+    - name: Debe renderizar StoryItem colapsado
       expect:
         visible: true
 
-    - name: Accordion expands on click
+    - name: El acordeón debe expandir al hacer click
       expect:
         expanded: true
 
-    - name: Status badge color matches status
+    - name: El color del StatusBadge debe coincidir con el status
       expect:
         colorApplied: true
 
   integration:
 
-    - name: Edit story inline
+    - name: Editar story en línea
       steps:
         - clickStory
         - editTitle
@@ -269,7 +270,7 @@ tests:
       expect:
         updated: true
 
-    - name: Change status updates UI
+    - name: Cambiar status actualiza la UI
       steps:
         - changeStatus
       expect:

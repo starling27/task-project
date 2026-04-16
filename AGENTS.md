@@ -1,122 +1,106 @@
 # 🧠 AGENTS.md
 
-## 🎯 System Overview
+## 🎯 Resumen Del Sistema
 
-This system is a backlog management panel that allows users to:
-- Manage projects
-- Define epics and user stories
-- Organize sprint backlogs
-- Visualize data using accordion UI
-- Sync backlog to Jira via MCP
+Este sistema es un panel de gestión de backlog que permite a los usuarios:
+- Gestionar proyectos
+- Definir epics e historias de usuario
+- Organizar backlogs
+- Visualizar datos usando una UI tipo acordeón
+- Sincronizar el backlog con Jira vía MCP
 
 ---
 
-## 🤖 Agents Definition
+## 🤖 Definición De Agentes
 
 ### 1. Project Manager Agent
-**Responsibility:**
-- Create, update, delete projects
-- Maintain project metadata
+**Responsabilidad:**
+- Crear, actualizar y eliminar proyectos
+- Mantener la metadata del proyecto
 
-**Inputs:**
-- Project name
-- Description
+**Entradas:**
+- Nombre del proyecto
+- Descripción
 
-**Outputs:**
-- Project entity
+**Salidas:**
+- Entidad `Project`
 
 ---
 
 ### 2. Epic Agent
-**Responsibility:**
-- Create and manage epics inside a project
+**Responsabilidad:**
+- Crear y gestionar epics dentro de un proyecto
 
-**Inputs:**
-- Project ID
-- Epic name
-- Description
+**Entradas:**
+- `projectId`
+- Nombre del epic
+- Descripción
 
-**Outputs:**
-- Epic entity
+**Salidas:**
+- Entidad `Epic`
 
 ---
 
 ### 3. Story Agent
-**Responsibility:**
-- Manage user stories inside epics
+**Responsabilidad:**
+- Gestionar historias de usuario dentro de epics
 
-**Inputs:**
-- Epic ID
-- Title
-- Description
-- Acceptance criteria
+**Entradas:**
+- `epicId`
+- Título
+- Descripción
+- Criterios de aceptación
 
-**Outputs:**
-- Story entity
-
----
-
-### 4. Sprint Agent
-**Responsibility:**
-- Organize stories into sprint backlogs
-
-**Inputs:**
-- Sprint name
-- Story IDs
-
-**Outputs:**
-- Sprint backlog
+**Salidas:**
+- Entidad `Story`
 
 ---
 
-### 5. Jira Sync Agent
-**Responsibility:**
-- Transform backlog into Jira issues
-- Communicate with Jira MCP
+### 4. Jira Sync Agent
+**Responsabilidad:**
+- Transformar el backlog en issues de Jira
+- Comunicar con Jira MCP
 
-**Inputs:**
-- Stories
-- Epics
-- Sprint data
+**Entradas:**
+- `Story[]`
+- `Epic[]`
 
-**Outputs:**
-- Jira tickets created
+**Salidas:**
+- Tickets de Jira creados
 
 ---
 
-### 6. UI Agent
-**Responsibility:**
-- Represent hierarchical data in accordion format
+### 5. UI Agent
+**Responsabilidad:**
+- Representar datos jerárquicos en formato acordeón
 
 **Structure:**
 Project
  └── Epics
       └── Stories
-           └── Sprint Assignment
 
 ---
 
-## 🔄 Agent Interaction Flow
+## 🔄 Flujo De Interacción Entre Agentes
 
-1. Project Manager creates project
-2. Epic Agent adds epics
-3. Story Agent adds stories
-4. Sprint Agent groups stories
-5. UI Agent renders structure
-6. Jira Sync Agent exports to Jira
-
----
-
-## 📌 Constraints
-
-- All entities must be relational
-- UI must support accordion navigation
-- Jira integration must be optional and async
+1. Project Manager Agent crea el proyecto
+2. Epic Agent agrega epics
+3. Story Agent agrega historias
+4. UI Agent renderiza la estructura
+5. Jira Sync Agent exporta a Jira
 
 ---
 
-## 🚀 Future Considerations
+## 📌 Restricciones
 
-- Permissions per user
-- Real-time collaboration
-- AI-assisted backlog generation
+- Todas las entidades deben ser relacionales
+- La UI debe soportar navegación tipo acordeón
+- La integración con Jira debe ser opcional y asíncrona
+
+---
+
+## 🚀 Consideraciones Futuras
+
+- Permisos por usuario
+- Colaboración en tiempo real
+- Generación asistida por IA del backlog

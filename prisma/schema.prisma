@@ -13,11 +13,13 @@ model User {
   name            String
   role            String            @default("member") // admin, member, viewer
   avatarUrl       String?
+  provider        String?           // google, etc.
+  providerId      String?           // OAuth provider user ID
   stories         Story[]           @relation("StoryAssignee")
   assigneeHistory AssigneeHistory[]
-  comments        Comment[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
 }
 
 model Project {
@@ -25,10 +27,10 @@ model Project {
   name            String          @unique
   description     String?
   epics           Epic[]
-  sprints         Sprint[]
   workflowStates  WorkflowState[] // Added for reverse relation
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
 }
 
 model Epic {
@@ -41,20 +43,7 @@ model Epic {
   stories     Story[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  @@unique([projectId, name])
-}
-
-model Sprint {
-  id        String   @id @default(uuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id])
-  name      String
-  goal      String?
-  status    String   @default("planned") // planned, active, closed
-  stories   Story[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  deletedAt   DateTime?
 
   @@unique([projectId, name])
 }
@@ -63,8 +52,6 @@ model Story {
   id                 String            @id @default(uuid())
   epicId             String
   epic               Epic              @relation(fields: [epicId], references: [id])
-  sprintId           String?
-  sprint             Sprint?           @relation(fields: [sprintId], references: [id])
   assigneeId         String?
   assignee           User?             @relation("StoryAssignee", fields: [assigneeId], references: [id])
   title              String
@@ -81,8 +68,10 @@ model Story {
   statusHistory      StatusHistory[]
   assigneeHistory    AssigneeHistory[]
   syncLogs           JiraSyncLog[]
+  jiraSyncQueue      JiraSyncQueue?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
 }
 
 model WorkflowState {
@@ -104,8 +93,7 @@ model Comment {
   id        String   @id @default(uuid())
   storyId   String
   story     Story    @relation(fields: [storyId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  author    String
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -132,7 +120,8 @@ model AssigneeHistory {
 
 model JiraSyncQueue {
   id        String   @id @default(uuid())
-  storyId   String
+  storyId   String   @unique
+  story     Story    @relation(fields: [storyId], references: [id])
   action    String // create, update
   status    String   @default("pending") // pending, processing, completed, failed
   retries   Int      @default(0)

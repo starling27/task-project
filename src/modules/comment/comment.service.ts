@@ -4,7 +4,7 @@ import { eventBus, SystemEvents } from '../../services/eventBus.js';
 const prisma = new PrismaClient();
 
 export class CommentService {
-  async create(data: { storyId: string; userId: string; content: string }) {
+  async create(data: { storyId: string; author: string; content: string }) {
     if (!data.content || data.content.trim().length === 0) {
       throw new Error('Comment content cannot be empty');
     }
@@ -12,18 +12,15 @@ export class CommentService {
     const comment = await prisma.comment.create({
       data: {
         storyId: data.storyId,
-        userId: data.userId,
+        author: data.author,
         content: data.content
-      },
-      include: {
-        user: true
       }
     });
 
     eventBus.emitEvent(SystemEvents.COMMENT_ADDED, {
       storyId: data.storyId,
       commentId: comment.id,
-      userId: data.userId
+      author: data.author
     });
 
     return comment;
@@ -32,7 +29,6 @@ export class CommentService {
   async getByStory(storyId: string) {
     return prisma.comment.findMany({
       where: { storyId },
-      include: { user: true },
       orderBy: { createdAt: 'desc' }
     });
   }
