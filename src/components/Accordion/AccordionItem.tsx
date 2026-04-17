@@ -11,6 +11,7 @@ interface AccordionItemProps {
   priority: string;
   assigneeId?: string;
   points?: number;
+  dueDate?: string | null;
   isOpen: boolean;
   onToggle: (id: string) => void;
   onUpdate: (id: string, updates: any) => Promise<void>;
@@ -24,6 +25,7 @@ export const StoryAccordionItem: React.FC<AccordionItemProps> = ({
   priority, 
   assigneeId, 
   points, 
+  dueDate,
   isOpen, 
   onToggle, 
   onUpdate,
@@ -85,6 +87,12 @@ export const StoryAccordionItem: React.FC<AccordionItemProps> = ({
             <Hash size={12} />
             <span className="text-[11px] font-bold">{points || 0}</span>
           </div>
+
+          {dueDate && (
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded text-amber-700 border border-amber-200">
+              <span className="text-[10px] font-bold uppercase">{dueDate}</span>
+            </div>
+          )}
 
           <AssigneeSelector storyId={id} currentAssigneeId={assigneeId} />
 

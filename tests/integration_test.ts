@@ -86,7 +86,31 @@ async function runE2ETest() {
       throw new Error("❌ Error: cantidad de tareas inesperada en JiraSyncQueue para la historia creada");
     }
 
-    console.log("\n✨ RESULTADO: FLUJO DE ENCOLADO EXITOSO ✨");
+    // 5. Verificar dueDate persistence
+    const dueDate = "2024-12-31";
+    const updatedStory = await storyService.update(story.id, { dueDate });
+    const receivedDueDate = updatedStory.dueDate?.toISOString().split('T')[0];
+    if (receivedDueDate === dueDate) {
+      console.log("✅ DueDate persistido correctamente:", receivedDueDate);
+    } else {
+      throw new Error(`❌ Error: dueDate no se persistió correctamente. Esperado: ${dueDate}, Recibido: ${receivedDueDate}`);
+    }
+
+    // 6. Crear Story con dueDate
+    const storyWithDueDate = await storyService.create({
+      epicId: epic.id,
+      title: "Story with Due Date",
+      description: "Testing creation with due date",
+      dueDate: "2025-01-01"
+    });
+    const receivedDueDateCreated = storyWithDueDate.dueDate?.toISOString().split('T')[0];
+    if (receivedDueDateCreated === "2025-01-01") {
+      console.log("✅ Story creada con DueDate correctamente");
+    } else {
+      throw new Error("❌ Error: Story no se creó con DueDate correctamente");
+    }
+
+    console.log("\n✨ RESULTADO: FLUJO DE ENCOLADO Y DUE DATE EXITOSO ✨");
     process.exit(0);
   } catch (error: any) {
     console.error("❌ FALLO EN LA PRUEBA:", error.message);

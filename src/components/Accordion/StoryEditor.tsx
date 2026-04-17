@@ -7,6 +7,7 @@ interface StoryDetails {
   description: string;
   acceptanceCriteria: string;
   observations: string;
+  dueDate?: string | null;
 }
 
 interface StoryEditorProps {
@@ -35,7 +36,8 @@ export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
         await onSave(story.id, {
           description: localData.description,
           acceptanceCriteria: localData.acceptanceCriteria,
-          observations: localData.observations
+          observations: localData.observations,
+          dueDate: localData.dueDate
         });
       } catch (error) {
         setSaveError('Save failed. Restored latest data from server.');
@@ -93,6 +95,26 @@ export const StoryEditor: React.FC<StoryEditorProps> = ({ story, onSave }) => {
                 className="w-full p-4 bg-slate-900 text-blue-100 border border-slate-800 rounded-xl text-xs font-mono leading-relaxed focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-40 shadow-2xl"
                 value={localData.acceptanceCriteria}
                 onChange={(e) => handleChange('acceptanceCriteria', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Observations</label>
+              <textarea
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm leading-relaxed focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 shadow-inner"
+                value={localData.observations}
+                onChange={(e) => handleChange('observations', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Due Date</label>
+              <input
+                type="date"
+                className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-inner"
+                value={localData.dueDate || ''}
+                onChange={(e) => handleChange('dueDate', e.target.value)}
               />
             </div>
           </div>

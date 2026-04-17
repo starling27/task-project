@@ -8,6 +8,7 @@ import { WorkflowService } from './modules/workflow/workflow.service.js';
 import { CommentService } from './modules/comment/comment.service.js';
 import { HistoryService } from './modules/history/history.service.js';
 import { AuthService } from './modules/auth/auth.service.js';
+import { ReportService } from './modules/report/report.service.js';
 
 const fastify = Fastify({ logger: true });
 
@@ -24,6 +25,7 @@ const workflowService = new WorkflowService();
 const commentService = new CommentService();
 const historyService = new HistoryService();
 const authService = new AuthService(fastify as any);
+const reportService = new ReportService();
 
 // Health Check
 fastify.get('/api/v1/health', async () => ({ status: 'ok' }));
@@ -143,6 +145,18 @@ fastify.post('/api/v1/comments', async (req: any) => commentService.create(req.b
 
 // History Routes
 fastify.get('/api/v1/history/story/:storyId', async (req: any) => historyService.getFullStoryHistory(req.params.storyId));
+
+// Report Routes
+fastify.get('/api/v1/reports/project/:projectId', async (req: any, reply) => {
+  try {
+    const csv = await reportService.generateProjectBacklogCSV(req.params.projectId);
+    reply.header('Content-Type', 'text/csv');
+    reply.header('Content-Disposition', `attachment; filename=backlog-${req.params.projectId}.csv`);
+    return csv;
+  } catch (error: any) {
+    return reply.status(500).send({ error: error.message });
+  }
+});
 
 const start = async () => {
   try {

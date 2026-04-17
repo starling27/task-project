@@ -32,6 +32,7 @@ export interface Story {
   status: string;
   acceptanceCriteria?: string;
   observations?: string;
+  dueDate?: string | null;
   assignee?: User;
 }
 

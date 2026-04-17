@@ -34,8 +34,14 @@ export class JiraSyncWorker {
   private async queueSync(storyId: string, action: string) {
     console.log(`[SyncWorker] Queuing ${action} for story ${storyId}`);
     
-    await prisma.jiraSyncQueue.create({
-      data: {
+    await prisma.jiraSyncQueue.upsert({
+      where: { storyId },
+      update: {
+        action,
+        status: 'pending',
+        retries: 0 // Reset retries on update if it was failed/pending
+      },
+      create: {
         storyId,
         action,
         status: 'pending'

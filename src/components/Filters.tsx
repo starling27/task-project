@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X, Download } from 'lucide-react';
 import { useBacklogStore, FiltersState } from '../store/useBacklogStore';
 
 interface DropdownProps {
@@ -83,7 +83,7 @@ const FilterDropdown: React.FC<DropdownProps> = ({ label, options, selected, onT
 };
 
 export const Filters: React.FC = () => {
-  const { filters, workflowStates, users, toggleFilter, setFilters, clearFilters } = useBacklogStore();
+  const { filters, workflowStates, users, toggleFilter, setFilters, clearFilters, selectedProjectId } = useBacklogStore();
 
   const priorities = [
     { id: 'low', name: 'Low' },
@@ -128,6 +128,12 @@ export const Filters: React.FC = () => {
     ));
   };
 
+  const handleExportCSV = () => {
+    if (selectedProjectId) {
+      window.open(`http://localhost:3000/api/v1/reports/project/${selectedProjectId}`, '_blank');
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2 p-3 bg-white border-b border-slate-100">
       <div className="flex gap-2 items-center">
@@ -162,6 +168,16 @@ export const Filters: React.FC = () => {
           >
             <X size={14} />
             Reset All
+          </button>
+        )}
+
+        {selectedProjectId && (
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors ml-auto border border-indigo-100 rounded-lg hover:bg-indigo-50"
+          >
+            <Download size={14} />
+            Exportar CSV
           </button>
         )}
       </div>

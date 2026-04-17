@@ -16,6 +16,7 @@ export class StoryService {
     priority?: string;
     type?: string;
     assigneeId?: string;
+    dueDate?: string | Date;
   }) {
     // 1. Validar Epic
     const epic = await prisma.epic.findUnique({ where: { id: data.epicId } });
@@ -28,6 +29,11 @@ export class StoryService {
 
     // 3. Obtener estado inicial
     const initialStatus = await workflowService.getInitialState(epic.projectId);
+
+    // Robustness: ensure dueDate is a Date object if provided
+    if (data.dueDate && typeof data.dueDate === 'string') {
+      data.dueDate = new Date(data.dueDate);
+    }
 
     const story = await prisma.story.create({
       data: {
@@ -48,6 +54,11 @@ export class StoryService {
       include: { epic: true }
     });
     if (!story_to_update) throw new Error('Story not found');
+
+    // Robustness: ensure dueDate is a Date object if provided
+    if (data.dueDate && typeof data.dueDate === 'string') {
+      data.dueDate = new Date(data.dueDate);
+    }
 
     // Validar Story Points si cambian
     if (data.storyPoints && !this.validPoints.includes(data.storyPoints)) {
