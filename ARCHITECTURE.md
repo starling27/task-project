@@ -2,6 +2,31 @@
 
 ---
 
+## 📦 Estructura de Monorepo
+
+El proyecto utiliza **npm workspaces** para gestionar frontend y backend de forma independiente:
+
+```
+root/
+├── package.json          (workspace root)
+├── frontend/            (@task-project/frontend)
+│   └── src/             (React + Vite)
+├── backend/             (@task-project/backend)
+│   ├── src/            (Node.js + Fastify + Prisma)
+│   ├── prisma/
+│   └── tests/
+└── .husky/             (pre-commit hooks con validation)
+```
+
+### Flujo de desarrollo
+
+- `npm run dev` - Inicia backend y frontend en paralelo
+- `npm run build` - Compila ambos proyectos
+- `npm test` - Ejecuta tests de integración del backend
+- Los hooks de pre-commit validan TypeScript antes de cada commit
+
+---
+
 ## 🎯 Resumen De Arquitectura
 
 Este sistema sigue una arquitectura full-stack modular, escalable y orientada a eventos, diseñada para gestión de backlog e integración con Jira.

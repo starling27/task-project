@@ -1,5 +1,41 @@
 # 🧠 AGENTS.md
 
+## 📁 Estructura del Proyecto
+
+El proyecto utiliza una estructura de **monorepo** con npm workspaces:
+
+```
+root/
+├── package.json          (workspaces root)
+├── frontend/            (@task-project/frontend)
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── index.css
+│   │   └── main.tsx
+│   └── package.json
+├── backend/             (@task-project/backend)
+│   ├── src/
+│   │   ├── modules/     (hexagonal architecture)
+│   │   ├── core/
+│   │   ├── shared/
+│   │   ├── workers/
+│   │   └── index.ts
+│   ├── prisma/
+│   ├── tests/
+│   └── package.json
+└── .husky/              (pre-commit hooks)
+```
+
+### Comandos
+
+- `npm run dev` - Inicia ambos proyectos (backend + frontend)
+- `npm run build` - Compila ambos proyectos
+- `npm run test` - Ejecuta tests del backend
+- `npm run typecheck` - Verifica tipos de ambos proyectos
+
+---
+
 ## 🎯 Resumen Del Sistema
 
 Este sistema es un panel de gestión de backlog que permite a los usuarios:

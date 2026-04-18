@@ -2,44 +2,24 @@
   "name": "backlog-jira-sync-system",
   "version": "1.0.0",
   "type": "module",
+  "private": true,
   "description": "System for backlog management and Jira sync via MCP",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "db:migrate": "prisma migrate dev --name init",
-    "db:studio": "prisma studio",
-    "backend:dev": "tsx src/index.ts",
-    "frontend:dev": "vite",
-    "worker:dev": "tsx src/workers/jiraSyncWorker.ts",
-    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"npm run worker:dev\"",
-    "test:integration": "tsx tests/integration_test.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
-  },
-  "dependencies": {
-    "@fastify/jwt": "^6.7.1",
-    "@prisma/client": "^5.0.0",
-    "axios": "^1.15.0",
-    "events": "^3.3.0",
-    "fastify": "^4.0.0",
-    "lucide-react": "^1.8.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "zustand": "^4.0.0"
+    "dev": "concurrently \"npm run -w @task-project/backend dev\" \"npm run -w @task-project/frontend dev\"",
+    "build": "npm run -w @task-project/backend build && npm run -w @task-project/frontend build",
+    "test": "npm run -w @task-project/backend test",
+    "typecheck": "npm run -w @task-project/backend typecheck && npm run -w @task-project/frontend typecheck",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
-    "autoprefixer": "^10.4.27",
     "concurrently": "^8.0.0",
-    "postcss": "^8.5.9",
-    "prisma": "^5.0.0",
-    "tailwindcss": "^4.2.2",
-    "ts-node-dev": "^2.0.0",
-    "tsx": "^4.0.0",
-    "typescript": "^5.0.0",
-    "vite": "^5.0.0"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "dotenv": "^17.4.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "typescript": "^5.0.0"
   }
 }
