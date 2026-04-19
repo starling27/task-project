@@ -9,8 +9,9 @@ import { useProjects } from '@modules/project/hooks/useProjects';
 import { Filters } from '@modules/project/components/Filters';
 import { WorkflowPanel } from '@modules/project/components/WorkflowPanel';
 import { LoginPage } from '@modules/auth/pages/LoginPage';
-import { Loader as AuthLoader } from '@shared/ui/Loader';
+import { AuthLoader } from '@shared/ui/Loader';
 import { EmailEntryForm } from '@modules/auth/components/EmailEntryForm';
+import { GlobalErrorMessage } from '@shared/ui/GlobalErrorMessage';
 
 export const BacklogPage: React.FC = () => {
   const { 
@@ -22,7 +23,9 @@ export const BacklogPage: React.FC = () => {
     users, 
     createUser, 
     deleteUser,
-    filters
+    filters,
+    error: backlogError,
+    clearError
   } = useBacklogStore();
   const { projects, selectedProjectId, selectProject, createProject, deleteProject } = useProjects();
   const { stories, loading: storiesLoading, updateStoryStatus } = useStories();
@@ -35,7 +38,6 @@ export const BacklogPage: React.FC = () => {
     partialUser,
     setSession,
     setPartialSession,
-    setError
   } = useAuthStore();
 
   const [openStoryId, setOpenStoryId] = useState<string | null>(null);
@@ -276,6 +278,7 @@ export const BacklogPage: React.FC = () => {
 
         <main className="flex-1 overflow-y-auto p-8 bg-slate-50">
           <div className="max-w-5xl mx-auto">
+            <GlobalErrorMessage message={backlogError || ''} onClear={clearError} />
             {epics.length === 0 ? (
               <section className="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
                 <h2 className="text-lg font-semibold text-slate-800">No epics yet</h2>

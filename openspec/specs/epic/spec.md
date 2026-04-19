@@ -82,7 +82,7 @@ rules:
     type: business
     validation: exists(Project, projectId)
 
-  - name: El nombre de Epic debe ser único dentro de un Project
+  - name: El nombre de Epic debe ser único dentro de un Project, pero solo si las epicas estan activas, si se eliminan o archivan el nombre se libera.
     type: business
     validation: uniqueWithin(projectId, name)
 

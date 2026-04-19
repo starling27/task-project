@@ -4,6 +4,13 @@ export interface CreateEpicInput {
   description?: string;
 }
 
+export interface UpdateEpicInput {
+  id: string;
+  name?: string;
+  description?: string;
+  status?: string;
+}
+
 export interface EpicOutput {
   id: string;
   projectId: string;

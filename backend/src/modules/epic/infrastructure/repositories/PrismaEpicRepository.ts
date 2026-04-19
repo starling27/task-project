@@ -12,8 +12,17 @@ export class PrismaEpicRepository implements EpicRepository {
   }
 
   async findByNameInProject(projectId: string, name: string): Promise<Epic | null> {
+    // We only check for active/draft epics. 
+    // If an epic is archived or soft-deleted, its name is considered 'released' for reuse.
     const prismaEpic = await prisma.epic.findFirst({
-      where: { projectId, name, deletedAt: null }
+      where: { 
+        projectId, 
+        name,
+        deletedAt: null,
+        NOT: {
+          status: 'archived'
+        }
+      }
     });
     return prismaEpic ? EpicMapper.toDomain(prismaEpic) : null;
   }
